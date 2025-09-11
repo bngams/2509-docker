@@ -1,0 +1,82 @@
+services:
+  app:
+    privileged: false
+    image: node:18-alpine
+    command: sh -c "yarn install && yarn run dev"
+    restart: unless-stopped
+    # custom healthcheck to monitor the app status
+    # healthcheck:
+    #   test: ["CMD", "./healthcheck.sh"] # exec a custom command or script...
+    #   interval: 10s
+    #   retries: 5
+    #   start_period: 10s # adapt start_period to your app initialization time
+    #   timeout: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+          pids: 1
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    depends_on:
+      mysql:
+        condition: service_healthy # wait for mysql to be healthy => healthcheck in mysql service
+        restart: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - 127.0.0.1:3000:3000
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ../conf/secrets.json:/app/conf/secrets.json:ro # read-only mount
+    env_file:
+      - .env
+    # environment:
+    #   MYSQL_HOST: mysql
+    #   MYSQL_USER: root
+    #   MYSQL_PASSWORD: secret
+    #   MYSQL_DB: todos
+
+  mysql:
+    image: mysql:8.0
+    # we can also use restart policy with deploy property
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 50M
+          pids: 1
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    # healthcheck to ensure mysql is ready before starting app service
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"] # exec a custom command ...
+      interval: 10s
+      retries: 5
+      start_period: 10s # adapt start_period to your mysql initialization time
+      timeout: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - todo-mysql-data:/var/lib/mysql
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+
+volumes:
+  todo-mysql-data:
+    # name: todo-mysql-data
+    # external: true # si le volume est déjà créé (doit être créé avant le docker-compose up)
