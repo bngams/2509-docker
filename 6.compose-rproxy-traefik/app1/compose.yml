@@ -48,7 +48,6 @@ volumes:
 networks:
   app1_net:
     name: app1_net
-    driver: bridge
 
   public_net:
     external: true
