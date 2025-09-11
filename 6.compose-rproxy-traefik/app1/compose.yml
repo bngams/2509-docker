@@ -1,0 +1,55 @@
+services:
+  app1:
+    build: ./app1
+    image: node-app1
+    depends_on:
+      - app1_db
+      # - traefik pas forcément besoin de depends_on car même si traefik se lance ou redémarrer apres il detecte les containers via le socket docker
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app1.rule=PathPrefix(`/app1`)"
+      - "traefik.http.services.app1.loadbalancer.server.port=3000"
+      - "traefik.docker.network=public_net"
+    hostname: app1
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - DB_HOST=app1_db
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=app1db
+    networks:
+      - app1_net
+      - public_net
+  
+  app1_db:
+    hostname: app1_db
+    image: mysql:8.4
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app1db
+    volumes:
+      - app1_db_data:/var/lib/mysql
+    networks:
+      app1_net:
+        aliases:
+          - app1_db
+
+volumes:
+  app1_db_data:
+    name: app1_db_data
+
+networks:
+  app1_net:
+    name: app1_net
+    driver: bridge
+
+  public_net:
+    external: true
+    name: public_net

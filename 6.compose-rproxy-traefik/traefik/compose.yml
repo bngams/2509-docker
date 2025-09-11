@@ -1,0 +1,23 @@
+version: '3'
+services:
+  traefik:
+    image: traefik:v2.9
+    container_name: traefik
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "8080:80"
+      - "5050:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - public_net
+
+networks:
+  public_net:
+    external: true

@@ -1,0 +1,22 @@
+services:
+  app2:
+    image: traefik/whoami
+    hostname: app2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app2.rule=PathPrefix(`/app2`)"
+      - "traefik.docker.network=public_net" # on précise le réseau public_net car par défaut traefik utilise le réseau par défaut du projet (ici app2_app2_net)
+    ports:
+      - "127.0.0.1:3001:80"
+    networks:
+      - app2_net
+      - public_net
+
+networks:
+  app2_net:
+    name: app2_net
+    driver: bridge
+
+  public_net:
+    external: true
+    name: public_net
