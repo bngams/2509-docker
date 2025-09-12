@@ -1,0 +1,8 @@
+  services:
+    web:
+      image: docker-registry:5000/stackdemo # pour push sur le registry local
+      build: .
+      ports:
+        - "8000:8000"
+    redis:
+      image: redis:alpine
