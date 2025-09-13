@@ -1,3 +1,7 @@
+# Resources
+
+Original scenario here: https://docs.docker.com/compose/gettingstarted/#step-1-set-up
+
 # Use compose watch
 
 Use the [watch](https://docs.docker.com/compose/how-tos/file-watch/) option with docker compose
